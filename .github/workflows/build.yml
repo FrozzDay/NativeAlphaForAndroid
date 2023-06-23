@@ -23,11 +23,12 @@ jobs:
         distribution: temurin
         java-version: 11
         cache: gradle
-    - name: Accept Android licenses
-      run: yes | sdkmanager --licenses
-    - name: Build with Gradle
-      run: ./gradlew assembleRelease
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v2
+    - name: Build the app
+      run: ./gradlew --no-daemon assembleRelease
     - uses: actions/upload-artifact@v2
       with:
-        name: NativeAlpha.apk
-        path: app/build/outputs/apk/release/*.apk
+        name: NativeAlpha
+        path: |
+          app/build/outputs/apk/release/*.apk
