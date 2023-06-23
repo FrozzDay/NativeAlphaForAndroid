@@ -23,6 +23,8 @@ jobs:
         distribution: temurin
         java-version: 11
         cache: gradle
+    - name: Accept Android licenses
+      run: yes | sdkmanager --licenses
     - name: Build with Gradle
       run: ./gradlew assembleRelease
     - uses: actions/upload-artifact@v2
