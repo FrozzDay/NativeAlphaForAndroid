@@ -182,11 +182,20 @@ String placeholder = "<!--Placeholder-->"
     preBuild.dependsOn trTask
 }
 
-def renameManifest = tasks.register("renameManifest") {
-    ant.move(file: 'src/main/AndroidManifest.xml', tofile:'src/main/AndroidManifest_original.xml')
+def renameManifestTask = tasks.register("renameManifest") {
+    doLast {
+        if (project.gradle.taskGraph.hasTask(preBuild)) {
+            ant.move(file: 'src/main/AndroidManifest.xml', tofile: 'src/main/AndroidManifest_original.xml')
+        }
+    }
 }
 preBuild.dependsOn renameManifest
 
+gradle.buildFinished {
+    if (gradle.buildResult.failure) {
+        ant.move(file: 'src/main/AndroidManifest_original.xml', tofile: 'src/main/AndroidManifest.xml')
+    }
+}
 
 def generateWebViewActivities = tasks.register( "extendAndroidManifest", Copy ) {
     from 'src/main/AndroidManifest_original.xml'
