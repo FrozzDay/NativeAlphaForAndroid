@@ -24,6 +24,7 @@ jobs:
       #   with:
       #     script: assembleRelease
       #     android-license: ${{ secrets.ANDROID_LICENCE }}
+      - run: yes | sdkmanager --licenses
       - name: Set up signing key
         run: |
           echo ${{ secrets.SIGNING_KEY }} | base64 --decode > signing-key.jks
