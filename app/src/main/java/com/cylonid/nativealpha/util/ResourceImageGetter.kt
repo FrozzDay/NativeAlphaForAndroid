@@ -1,16 +1,16 @@
 package com.cylonid.nativealpha.util
 
 import android.content.Context
-import android.text.Html.ImageGetter
 import android.graphics.drawable.Drawable
+import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 
 class ResourceImageGetter(private val context: Context) : ImageGetter {
     override fun getDrawable(source: String): Drawable {
-        val resources = context.resources
         val resId = context.resIdByName(source, "drawable")
-        val res = resources.getDrawable(resId)
+        val drawable = AppCompatResources.getDrawable(context, resId)
 
-        res.setBounds(0, 0, res.intrinsicWidth, res.intrinsicHeight)
-        return res
+        drawable?.setBounds(0, 0, drawable.intrinsicWidth, drawable.intrinsicHeight)
+        return drawable!!
     }
 }
