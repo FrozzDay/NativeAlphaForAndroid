@@ -22,15 +22,15 @@ buildscript {
     }
 }
 
-plugins {
-    // Apply the plugin
-    id 'com.quittle.setup-android-sdk' version '3.1.0'
-}
+// plugins {
+//     // Apply the plugin
+//     id 'com.quittle.setup-android-sdk' version '3.1.0'
+// }
 
-setupAndroidSdk{
-    sdkToolsVersion '10406996_latest'
-    packages 'cmdline-tools;latest', 'build-tools;32.1.0', 'platforms;android-32'
-}
+// setupAndroidSdk{
+//     sdkToolsVersion '10406996_latest'
+//     packages 'cmdline-tools;latest', 'build-tools;32.1.0', 'platforms;android-32'
+// }
 allprojects {
     repositories {
         google()
