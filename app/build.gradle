@@ -4,8 +4,8 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.mikepenz.aboutlibraries.plugin'
 apply plugin: 'kotlin-android-extensions'
 
-final int NUM_OF_CONTAINERS = 8
-final String placeholder = "<!--Placeholder-->"
+int NUM_OF_CONTAINERS = 8
+String placeholder = "<!--Placeholder-->"
 
 android {
     compileSdkVersion 32
@@ -48,12 +48,47 @@ android {
             applicationIdSuffix = ".debug"
             resValue "string", "app_name_unicode", "_DEBUG-Nα"
         }
+        applicationVariants.all {
+                // this method is use to rename your release apk only
+            variant ->
+                variant.outputs.each {
+                        // on below line we are setting a name to our apk
+                    output ->
+                        // on below line we are specifying our app name.
+                        project.ext { appName = 'NativeAlpha' }
+                        // on below line we are adding the formatted date to our apk file name.
+                        def formattedDate = new Date().format('yyyy-MM-dd-HH-mm-ss')
+                        // on below line we are creating a new name for our apk.
+                        def newName = output.outputFile.name
+                        // on below line we are replacing our previous name with our app name.
+                        newName = newName.replace("app-", "$project.ext.appName-")
+                        // on below line we are replacing -release with our formatted date.
+                        newName = newName.replace("-release", "-release-" + "v" + variant.versionName)
+                        // at last we are setting our apk name to it.
+                        output.outputFileName = newName
+
+                }
+        }
     }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+    applicationVariants.all { variant ->
+        variant.assembleProvider.get().doLast {
+            delete fileTree('src/main/java/com/cylonid/nativealpha') {
+                include '**/__WebViewActivity_*.java'
+            }
+            delete fileTree('src/main') {
+                include '**/AndroidManifest.xml'
+            }
+            // ant.move(file: 'src/main/AndroidManifest_original.xml', tofile:'src/main/AndroidManifest.xml')
+
+        }
+    }
+
+
 }
 repositories {
     maven {
@@ -94,72 +129,76 @@ dependencies {
 
     kapt "com.android.databinding:compiler:3.1.4"
 }
+if (!file('src/main/AndroidManifest.xml').exists()) {
+    // tasks.register("renameManifest") {
+    //     doLast {
+    //         ant.move(file: 'src/main/AndroidManifest.xml', tofile:'src/main/AndroidManifest_original.xml')
+    //     }
+    // }
+    // preBuild.dependsOn(tasks.named("renameManifest"))
 
-tasks.register("renameManifest") {
-    doLast {
-        ant.move(file: 'src/main/AndroidManifest.xml', tofile:'src/main/AndroidManifest_original.xml')
-    }
-}
-preBuild.dependsOn(tasks.named("renameManifest"))
+    def generateWebViewActivities = tasks.register("extendAndroidManifest", Copy) {
+        from 'src/main/AndroidManifest_original.xml'
+        into 'src/main'
 
-tasks.register("generateWebViewActivities", Copy) {
-    from 'src/main/AndroidManifest_original.xml'
-    into 'src/main'
+        String replacement = ""
+        for (int i = 0; i < NUM_OF_CONTAINERS; i++) {
+            println("Manifest replace")
+            println(String.valueOf(i))
+            replacement += "        <activity\n" +
+                    "            android:name=\".__WebViewActivity_" + String.valueOf(i) + "\"\n" +
+                    "            android:label=\"@string/app_name_unicode\"\n" +
+                    "            android:parentActivityName=\".MainActivity\"\n" +
+                    "            android:icon=\"@mipmap/native_alpha\"\n" +
+                    "            android:roundIcon=\"@mipmap/native_alpha\"\n" +
+                    "            android:theme=\"@style/AppTheme.NoActionBar.Webapp\"\n" +
+                    "            android:configChanges=\"orientation|screenSize|smallestScreenSize|density|screenLayout|uiMode|keyboard|keyboardHidden|navigation\"\n" +
+                    "            android:launchMode=\"standard\"\n" +
+                    "            android:process=\":web_sandbox_" + String.valueOf(i) + "\"\n" +
+                    "            android:documentLaunchMode=\"intoExisting\"\n" +
+                    "         />\n"
+        }
 
-    String replacement = ""
-    for (int i = 0; i < NUM_OF_CONTAINERS; i++) {
-        replacement += "        <activity\n" +
-                "            android:name=\".__WebViewActivity_" + String.valueOf(i) + "\"\n" +
-                "            android:label=\"@string/app_name_unicode\"\n" +
-                "            android:parentActivityName=\".MainActivity\"\n" +
-                "            android:icon=\"@mipmap/native_alpha\"\n" +
-                "            android:roundIcon=\"@mipmap/native_alpha\"\n" +
-                "            android:theme=\"@style/AppTheme.NoActionBar.Webapp\"\n" +
-                "            android:configChanges=\"orientation|screenSize|smallestScreenSize|density|screenLayout|uiMode|keyboard|keyboardHidden|navigation\"\n" +
-                "            android:launchMode=\"standard\"\n" +
-                "            android:process=\":web_sandbox_" + String.valueOf(i) + "\"\n" +
-                "            android:documentLaunchMode=\"intoExisting\"\n" +
-                "         />\n"
-    }
-    filter {
-        String line -> line.replaceAll(placeholder, replacement)
-    }
-    rename { String fileName ->
-        fileName.replace("_original", "")
-    }
-}
-preBuild.dependsOn(tasks.named("generateWebViewActivities"))
-
-for (int i = 0; i < NUM_OF_CONTAINERS; i++) {
-    tasks.register("createWebViewclass${i}", Copy) {
-        from 'src/main/java/com/cylonid/nativealpha/WebViewActivity.java'
-        into 'src/main/java/com/cylonid/nativealpha'
         filter {
-            String line -> line.replaceAll("WebViewActivity", "__WebViewActivity_${i}")
+            String line -> line.replaceAll(placeholder, replacement)
         }
         rename { String fileName ->
-            fileName.replace("WebViewActivity.java", "__WebViewActivity_${i}.java")
+            fileName.replace("_original", "")
         }
     }
-    preBuild.dependsOn(tasks.named("createWebViewclass${i}"))
+    preBuild.dependsOn(tasks.named("extendAndroidManifest"))
+
+    0.upto(NUM_OF_CONTAINERS-1) { int i ->
+        def trTask = tasks.register("createWebViewclass${i}", Copy) {
+            from 'src/main/java/com/cylonid/nativealpha/WebViewActivity.java'
+            into 'src/main/java/com/cylonid/nativealpha'
+            filter {
+                String line -> line.replaceAll("WebViewActivity", "__WebViewActivity_${i}")
+            }
+            rename { String fileName ->
+                fileName.replace("WebViewActivity.java", "__WebViewActivity_${i}.java")
+            }
+        }
+        preBuild.dependsOn(trTask)
+    }
 }
 // Define a new task for cleaning up after build
-task cleanUpAfterBuild {
-    doLast {
-        delete fileTree('src/main/java/com/cylonid/nativealpha') {
-            include '**/__WebViewActivity_*.java'
-        }
-        delete fileTree('src/main') {
-            include '**/AndroidManifest.xml'
-        }
-        ant.move(file: 'src/main/AndroidManifest_original.xml', tofile:'src/main/AndroidManifest.xml')
-    }
-}
+// task cleanUpAfterBuild {
+//     doLast {
+//         delete fileTree('src/main/java/com/cylonid/nativealpha') {
+//             include '**/__WebViewActivity_*.java'
+//         }
+//         delete fileTree('src/main') {
+//             include '**/AndroidManifest.xml'
+//         }
+//         ant.move(file: 'src/main/AndroidManifest_original.xml', tofile:'src/main/AndroidManifest.xml')
+//     }
+// }
 
-// Make sure the cleanUpAfterBuild task runs after every build task (both successful and failed)
-gradle.taskGraph.whenReady { graph ->
-    if (graph.hasTask(":assemble") || graph.hasTask(":build")) {
-        // Clean up after build tasks
-        tasks.named("cleanUpAfterBuild").get().mustRunAfter(graph.getAllTasks())
-    }
-}
+// // Make sure the cleanUpAfterBuild task runs after every build task (both successful and failed)
+// gradle.taskGraph.whenReady { graph ->
+//     if (graph.hasTask(":assemble") || graph.hasTask(":build")) {
+//         // Clean up after build tasks
+//         tasks.named("cleanUpAfterBuild").get().mustRunAfter(graph.getAllTasks())
+//     }
+// }
