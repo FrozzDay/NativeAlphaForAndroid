@@ -4,6 +4,9 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.mikepenz.aboutlibraries.plugin'
 apply plugin: 'kotlin-android-extensions'
 
+final int NUM_OF_CONTAINERS = 8
+final String placeholder = "<!--Placeholder-->"
+
 android {
     compileSdkVersion 32
     buildToolsVersion "32.1.0-rc1"
