@@ -22,6 +22,14 @@ buildscript {
     }
 }
 
+plugins {
+    // Apply the plugin
+    id 'com.quittle.setup-android-sdk' version '3.1.0'
+}
+
+setupAndroidSdk{
+    sdkToolsVersion '10406996'
+}
 allprojects {
     repositories {
         google()

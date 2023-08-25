@@ -26,7 +26,7 @@ jobs:
       #     android-license: ${{ secrets.ANDROID_LICENCE }}
       - name: Add Android SDK tools to PATH
         run: export PATH="$PATH:/usr/local/lib/android/sdk/tools/bin"
-      - run: yes | sdkmanager --licenses
+      # - run: yes | sdkmanager --licenses
       - name: Set up signing key
         run: |
           echo ${{ secrets.SIGNING_KEY }} | base64 --decode > signing-key.jks
