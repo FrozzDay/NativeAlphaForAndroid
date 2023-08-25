@@ -35,14 +35,13 @@ jobs:
       # - name: Build APK
       #   run: ./gradlew assembleRelease
       - uses: burrunan/gradle-cache-action@v1
-        name: Build PROJECT_NAME
+        name: Build NativeAlpha
         env:
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
         with:
           arguments: assembleRelease
-          gradle-version: wrapper
           properties: org.gradle.caching=true
       - uses: actions/upload-artifact@v3
         with:
