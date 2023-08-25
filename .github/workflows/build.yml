@@ -48,4 +48,27 @@ jobs:
           name: NativeAlpha
           path: |
             ${{ github.workspace }}/app/build/outputs/apk/release/
+      - name: Upload (file inside) Folder to file.io 
+        run: |
+          URL="https://file.io"
+          DEFAULT_EXPIRE="14d" # Default to 14 days
+
+          FOLDER=$1
+          EXPIRE=${2:-$DEFAULT_EXPIRE}
+
+          if [ ! -d "$FOLDER" ]; then
+              echo "Folder ${FOLDER} not found"
+              exit 1
+          fi
+
+          for FILE in "$FOLDER"/*; do
+              if [ -f "$FILE" ]; then
+                  RESPONSE=$(curl -# -F "file=@${FILE}" "${URL}/?expires=${EXPIRE}")
+                  echo "Uploaded ${FILE}: ${RESPONSE}"
+              fi
+          done
+        env:
+          FILE: ${{ github.workspace }}/app/build/outputs/apk/release/
+          EXPIRE: 1w
+
             
