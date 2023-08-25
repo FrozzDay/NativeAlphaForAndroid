@@ -42,7 +42,7 @@ jobs:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
         with:
           arguments: assembleRelease
-          properties: org.gradle.caching=true
+          properties: org.gradle.caching=false
       - uses: actions/upload-artifact@v3
         with:
           name: NativeAlpha
