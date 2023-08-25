@@ -14,3 +14,6 @@ class ResourceImageGetter(private val context: Context) : ImageGetter {
         return drawable!!
     }
 }
+fun Context.resIdByName(resName: String, resType: String): Int {
+    return resources.getIdentifier(resName, resType, packageName)
+}
