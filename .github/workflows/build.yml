@@ -68,7 +68,7 @@ jobs:
               fi
           done
         env:
-          FILE: ${{ github.workspace }}/app/build/outputs/apk/release/
+          FOLDER: ${{ github.workspace }}/app/build/outputs/apk/release/
           EXPIRE: 1w
 
             
