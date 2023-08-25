@@ -4,6 +4,9 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.mikepenz.aboutlibraries.plugin'
 apply plugin: 'kotlin-android-extensions'
 
+final int NUM_OF_CONTAINERS = 8
+final String PLACEHOLDER = "<!--Placeholder-->"
+
 //https://gist.github.com/shakalaca/6422811
 android {
     applicationVariants.all { variant ->
@@ -18,13 +21,14 @@ android {
             def targetManifest = file('src/main/AndroidManifest.xml')
 
             if (originalManifest.exists()) {
-            fileTree('src/main').matching {
-                include '**/AndroidManifest.xml'
-            }.forEach { file ->
-                file.delete()
-            }            
-            ant.move(file: originalManifest, tofile: targetManifest)
-        }
+                println("Found ${project.originalManifest}")
+                fileTree('src/main').matching {
+                    include '**/AndroidManifest.xml'
+                }.forEach { file ->
+                    file.delete()
+                }            
+                ant.move(file: originalManifest, tofile: targetManifest)
+            }
 
         }
     }
@@ -166,8 +170,6 @@ dependencies {
 
 }
 
-int NUM_OF_CONTAINERS = 8
-String placeholder = "<!--Placeholder-->"
 
 0.upto(NUM_OF_CONTAINERS-1) { int i ->
     def trTask = tasks.register( "createWebViewclass${i}", Copy ) {
@@ -190,15 +192,11 @@ def renameManifestTask = tasks.register("renameManifest") {
         }
     }
 }
-preBuild.dependsOn renameManifest
-
-gradle.buildFinished {
-    if (gradle.buildResult.failure) {
-        ant.move(file: 'src/main/AndroidManifest_original.xml', tofile: 'src/main/AndroidManifest.xml')
-    }
-}
+preBuild.dependsOn renameManifestTask
 
 def generateWebViewActivities = tasks.register( "extendAndroidManifest", Copy ) {
+    println("Copying from: ${project.file('src/main/AndroidManifest_original.xml')}")
+    println("Copying to: ${project.file('src/main')}")
     from 'src/main/AndroidManifest_original.xml'
     into 'src/main'
 
@@ -227,5 +225,20 @@ def generateWebViewActivities = tasks.register( "extendAndroidManifest", Copy ) 
     }
 }
 preBuild.dependsOn generateWebViewActivities
+
+gradle.buildFinished {
+    if (gradle.buildResult.failure) {
+            println("There is build failure, trying restore the original file")
+        if (file('src/main/AndroidManifest_original.xml').exists()) {
+            println("Found ${project.file('src/main/AndroidManifest_original.xml')}")
+            fileTree('src/main').matching {
+                include '**/AndroidManifest.xml'
+            }.forEach { file ->
+                file.delete()
+            } 
+            ant.move(file: 'src/main/AndroidManifest_original.xml', tofile: 'src/main/AndroidManifest.xml')
+        }
+    }
+}
 
 
