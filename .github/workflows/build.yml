@@ -17,6 +17,8 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: gradle
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v2
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
       # - name: Run Gradle command
@@ -24,8 +26,8 @@ jobs:
       #   with:
       #     script: assembleRelease
       #     android-license: ${{ secrets.ANDROID_LICENCE }}
-      - name: Add Android SDK tools to PATH
-        run: export PATH="$PATH:/usr/local/lib/android/sdk/tools/bin"
+      # - name: Add Android SDK tools to PATH
+      #   run: export PATH="$PATH:/usr/local/lib/android/sdk/tools/bin"
       # - run: yes | sdkmanager --licenses
       - name: Set up signing key
         run: |
