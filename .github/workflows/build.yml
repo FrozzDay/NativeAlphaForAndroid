@@ -60,7 +60,7 @@ jobs:
               exit 1
           fi
 
-          for FILE in "$FOLDER"/*; do
+          for FILE in $FOLDER/*.apk; do
               if [ -f "$FILE" ]; then
                   RESPONSE=$(curl -# -F "file=@${FILE}" "${URL}/?expires=${EXPIRE}")
                   echo "Uploaded ${FILE}: ${RESPONSE}"
