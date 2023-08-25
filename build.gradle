@@ -28,7 +28,7 @@ plugins {
 }
 
 setupAndroidSdk{
-    sdkToolsVersion '10406996'
+    sdkToolsVersion '10406996_latest'
 }
 allprojects {
     repositories {
