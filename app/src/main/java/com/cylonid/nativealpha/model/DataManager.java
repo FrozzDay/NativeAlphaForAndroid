@@ -16,15 +16,19 @@ import com.cylonid.nativealpha.util.Utility;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import com.himanshurawat.hasher.HashType;
-import com.himanshurawat.hasher.Hasher;
+// import com.himanshurawat.hasher.HashType;
+// import com.himanshurawat.hasher.Hasher;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -275,7 +279,12 @@ public class DataManager {
             appdata = App.getAppContext().getSharedPreferences(SHARED_PREF_KEY, MODE_PRIVATE);
             TreeMap<String, ?> shared_pref_map = new TreeMap<>(appdata.getAll());
 
-            oos.writeObject(Hasher.Companion.hash(shared_pref_map.toString(), HashType.SHA_256));
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedhash = digest.digest(
+                    shared_pref_map.toString().getBytes(StandardCharsets.UTF_8));
+            String hashString = Arrays.toString(encodedhash);
+            oos.writeObject(hashString);
+            // oos.writeObject(Hasher.Companion.hash(shared_pref_map.toString(), HashType.SHA_256));
             oos.writeObject(shared_pref_map);
 
             result = true;
@@ -296,8 +305,12 @@ public class DataManager {
             prefEdit.clear();
             String checksum = (String) ois.readObject();
             TreeMap<String, ?> shared_pref_map = ((TreeMap<String, ?>) ois.readObject());
-            String new_checksum = Hasher.Companion.hash(shared_pref_map.toString(), HashType.SHA_256);
-
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedhash = digest.digest(
+                    shared_pref_map.toString().getBytes(StandardCharsets.UTF_8));
+            String new_checksum = Arrays.toString(encodedhash);
+            // String new_checksum = Hasher.Companion.hash(shared_pref_map.toString(), HashType.SHA_256);
+            
             if (!checksum.equals(new_checksum))
                 throw new InvalidChecksumException("Checksums between backup and restored settings do not match.");
             for (Map.Entry<String, ?> entry : shared_pref_map.entrySet()) {
