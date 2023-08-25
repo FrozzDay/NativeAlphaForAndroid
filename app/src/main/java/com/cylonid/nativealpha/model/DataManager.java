@@ -331,7 +331,7 @@ public class DataManager {
             prefEdit.apply();
             result = true;
 
-        } catch (InvalidChecksumException | IOException | ClassNotFoundException e) {
+        } catch (InvalidChecksumException | IOException | ClassNotFoundException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
 
