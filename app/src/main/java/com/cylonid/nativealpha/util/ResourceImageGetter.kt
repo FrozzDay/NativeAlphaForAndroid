@@ -2,6 +2,8 @@ package com.cylonid.nativealpha.util
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import android.text.Html.ImageGetter
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 
@@ -14,6 +16,7 @@ class ResourceImageGetter(private val context: Context) : ImageGetter {
         return drawable!!
     }
 }
+
 fun Context.resIdByName(resName: String, resType: String): Int {
     return resources.getIdentifier(resName, resType, packageName)
 }
