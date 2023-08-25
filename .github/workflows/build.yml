@@ -47,7 +47,7 @@ jobs:
         with:
           name: NativeAlpha
           path: |
-            ${{ github.workspace }}/app/build/outputs/apk/release/
+            ${{ github.workspace }}/app/build/outputs/apk/**/release/*.apk
       - name: Upload (file inside) Folder to file.io 
         run: |
           URL="https://file.io"
@@ -67,7 +67,7 @@ jobs:
               fi
           done
         env:
-          FOLDER: ${{ github.workspace }}/app/build/outputs/apk/release/
+          FOLDER: ${{ github.workspace }}/app/build/outputs/apk/*/release
           EXPIRE: 1w
 
             
