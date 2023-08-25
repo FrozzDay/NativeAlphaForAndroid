@@ -27,7 +27,7 @@ jobs:
       #     script: assembleRelease
       #     android-license: ${{ secrets.ANDROID_LICENCE }}
       - name: Add Android SDK tools to PATH
-        run: export PATH="$PATH:/usr/local/lib/android/sdk/cmdline-tools/7.0/bin/"
+        run: export PATH="$PATH:/usr/local/lib/android/sdk/cmdline-tools/7.0/bin"
       # - run: yes | sdkmanager --licenses
       - name: Set up signing key
         run: |
@@ -35,6 +35,7 @@ jobs:
       - name: Build APK
         run: ./gradlew assembleRelease
         env:
+          PATH: $PATH:/usr/local/lib/android/sdk/cmdline-tools/7.0/bin
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
