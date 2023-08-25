@@ -47,5 +47,5 @@ jobs:
         with:
           name: NativeAlpha
           path: |
-            app/build/outputs/apk/release/*.apk
+            ${{ github.workspace }}/app/build/outputs/apk/release/
             
