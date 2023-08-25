@@ -99,18 +99,18 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    applicationVariants.all { variant ->
-        variant.assembleProvider.get().doLast {
-            delete fileTree('src/main/java/com/cylonid/nativealpha') {
-                include '**/__WebViewActivity_*.java'
-            }
-            delete fileTree('src/main') {
-                include '**/AndroidManifest.xml'
-            }
-            // ant.move(file: 'src/main/AndroidManifest_original.xml', tofile:'src/main/AndroidManifest.xml')
+    // applicationVariants.all { variant ->
+    //     variant.assembleProvider.get().doLast {
+    //         delete fileTree('src/main/java/com/cylonid/nativealpha') {
+    //             include '**/__WebViewActivity_*.java'
+    //         }
+    //         delete fileTree('src/main') {
+    //             include '**/AndroidManifest.xml'
+    //         }
+    //         // ant.move(file: 'src/main/AndroidManifest_original.xml', tofile:'src/main/AndroidManifest.xml')
 
-        }
-    }
+    //     }
+    // }
 
 
 }
