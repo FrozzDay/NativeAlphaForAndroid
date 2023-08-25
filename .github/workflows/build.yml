@@ -53,8 +53,7 @@ jobs:
           URL="https://file.io"
           DEFAULT_EXPIRE="14d" # Default to 14 days
 
-          FOLDER=$1
-          EXPIRE=${2:-$DEFAULT_EXPIRE}
+          EXPIRE=${EXPIRE:-$DEFAULT_EXPIRE}
 
           if [ ! -d "$FOLDER" ]; then
               echo "Folder ${FOLDER} not found"
