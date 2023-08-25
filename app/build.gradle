@@ -4,54 +4,24 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'com.mikepenz.aboutlibraries.plugin'
 apply plugin: 'kotlin-android-extensions'
 
-final int NUM_OF_CONTAINERS = 8
-final String PLACEHOLDER = "<!--Placeholder-->"
-
-//https://gist.github.com/shakalaca/6422811
 android {
-    applicationVariants.all { variant ->
-        variant.assembleProvider.get().doLast {
-            fileTree('src/main/java/com/cylonid/nativealpha').matching {
-                include '**/__WebViewActivity_*.java'
-            }.forEach { file ->
-                file.delete()
-            }
-            
-            def originalManifest = file('src/main/AndroidManifest_original.xml')
-            def targetManifest = file('src/main/AndroidManifest.xml')
-
-            if (originalManifest.exists()) {
-                println("Found ${project.originalManifest}")
-                fileTree('src/main').matching {
-                    include '**/AndroidManifest.xml'
-                }.forEach { file ->
-                    file.delete()
-                }            
-                ant.move(file: originalManifest, tofile: targetManifest)
-            }
-
-        }
-    }
-
-    signingConfigs {
-        release {
-            storeFile = file("signing-key.jks")
-            storePassword System.getenv("SIGNING_STORE_PASSWORD")
-            keyAlias System.getenv("SIGNING_KEY_ALIAS")
-            keyPassword System.getenv("SIGNING_KEY_PASSWORD")
-        }
-    }
-
     compileSdkVersion 32
     buildToolsVersion "32.1.0-rc1"
-    splits {
-        abi {
-            enable true
-            reset()
-            include "armeabi-v7a", "arm64-v8a"
-            universalApk true
-        }
+    
+    defaultConfig {
+        applicationId "com.cylonid.nativealpha"
+        minSdkVersion 26
+        targetSdkVersion 32
+        versionCode 1311
+        versionName "1.3.1"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunnerArguments clearPackageData: 'true'
     }
+
+    buildFeatures {
+        dataBinding true
+    }
+
     flavorDimensions "default"
     productFlavors {
         extended {
@@ -66,72 +36,21 @@ android {
         }
     }
 
-    defaultConfig {
-        applicationId "com.cylonid.nativealpha"
-        minSdkVersion 26
-        targetSdkVersion 32
-        versionCode 1311
-        versionName "1.3.1"
-
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunnerArguments clearPackageData: 'true'
-    }
-    buildFeatures {
-        dataBinding true
-    }
-    kotlinOptions {
-        jvmTarget = '1.8'
-    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
         debug {
-          applicationIdSuffix = ".debug"
-          resValue "string", "app_name_unicode", "_DEBUG-Nα"
+            applicationIdSuffix = ".debug"
+            resValue "string", "app_name_unicode", "_DEBUG-Nα"
         }
-        applicationVariants.all {
-                // this method is use to rename your release apk only
-            variant ->
-                variant.outputs.each {
-                        // on below line we are setting a name to our apk
-                    output ->
-                        // on below line we are specifying our app name.
-                        project.ext { appName = 'NativeAlpha' }
-                        // on below line we are adding the formatted date to our apk file name.
-                        def formattedDate = new Date().format('yyyy-MM-dd-HH-mm-ss')
-                        // on below line we are creating a new name for our apk.
-                        def newName = output.outputFile.name
-                        // on below line we are replacing our previous name with our app name.
-                        newName = newName.replace("app-", "$project.ext.appName-")
-                        // on below line we are replacing -release with our formatted date.
-                        newName = newName.replace("-release", "-release-" + "v" + variant.versionName)
-                        // at last we are setting our apk name to it.
-                        output.outputFileName = newName
+    }
 
-                }
-        }
-    }
-    testOptions {
-        unitTests {
-            includeAndroidResources = true
-        }
-        execution 'ANDROIDX_TEST_ORCHESTRATOR'
-    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-
-}
-repositories {
-    maven {
-        url 'https://gitlab.com/api/v4/projects/8817162/packages/maven'
-    }
-    mavenCentral()
-    jcenter()
 }
 
 dependencies {
@@ -163,40 +82,18 @@ dependencies {
     implementation 'pub.devrel:easypermissions:3.0.0'
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
     implementation "androidx.biometric:biometric:1.1.0"
-    implementation "androidx.browser:browser:1.4.0"
 
     kapt "com.android.databinding:compiler:3.1.4"
-
-
 }
 
-
-0.upto(NUM_OF_CONTAINERS-1) { int i ->
-    def trTask = tasks.register( "createWebViewclass${i}", Copy ) {
-        from 'src/main/java/com/cylonid/nativealpha/WebViewActivity.java'
-        into 'src/main/java/com/cylonid/nativealpha'
-        filter {
-            String line -> line.replaceAll("WebViewActivity", "__WebViewActivity_${i}")
-        }
-        rename { String fileName ->
-            fileName.replace("WebViewActivity.java", "__WebViewActivity_${i}.java")
-        }
-    }
-    preBuild.dependsOn trTask
-}
-
-def renameManifestTask = tasks.register("renameManifest") {
+tasks.register("renameManifest") {
     doLast {
-        if (project.gradle.taskGraph.hasTask(preBuild)) {
-            ant.move(file: 'src/main/AndroidManifest.xml', tofile: 'src/main/AndroidManifest_original.xml')
-        }
+        ant.move(file: 'src/main/AndroidManifest.xml', tofile:'src/main/AndroidManifest_original.xml')
     }
 }
-preBuild.dependsOn renameManifestTask
+preBuild.dependsOn(tasks.named("renameManifest"))
 
-def generateWebViewActivities = tasks.register( "extendAndroidManifest", Copy ) {
-    println("Copying from: ${project.file('src/main/AndroidManifest_original.xml')}")
-    println("Copying to: ${project.file('src/main')}")
+tasks.register("generateWebViewActivities", Copy) {
     from 'src/main/AndroidManifest_original.xml'
     into 'src/main'
 
@@ -215,8 +112,6 @@ def generateWebViewActivities = tasks.register( "extendAndroidManifest", Copy ) 
                 "            android:documentLaunchMode=\"intoExisting\"\n" +
                 "         />\n"
     }
-
-
     filter {
         String line -> line.replaceAll(placeholder, replacement)
     }
@@ -224,21 +119,38 @@ def generateWebViewActivities = tasks.register( "extendAndroidManifest", Copy ) 
         fileName.replace("_original", "")
     }
 }
-preBuild.dependsOn generateWebViewActivities
+preBuild.dependsOn(tasks.named("generateWebViewActivities"))
 
-gradle.buildFinished {
-    if (gradle.buildResult.failure) {
-            println("There is build failure, trying restore the original file")
-        if (file('src/main/AndroidManifest_original.xml').exists()) {
-            println("Found ${project.file('src/main/AndroidManifest_original.xml')}")
-            fileTree('src/main').matching {
-                include '**/AndroidManifest.xml'
-            }.forEach { file ->
-                file.delete()
-            } 
-            ant.move(file: 'src/main/AndroidManifest_original.xml', tofile: 'src/main/AndroidManifest.xml')
+for (int i = 0; i < NUM_OF_CONTAINERS; i++) {
+    tasks.register("createWebViewclass${i}", Copy) {
+        from 'src/main/java/com/cylonid/nativealpha/WebViewActivity.java'
+        into 'src/main/java/com/cylonid/nativealpha'
+        filter {
+            String line -> line.replaceAll("WebViewActivity", "__WebViewActivity_${i}")
         }
+        rename { String fileName ->
+            fileName.replace("WebViewActivity.java", "__WebViewActivity_${i}.java")
+        }
+    }
+    preBuild.dependsOn(tasks.named("createWebViewclass${i}"))
+}
+// Define a new task for cleaning up after build
+task cleanUpAfterBuild {
+    doLast {
+        delete fileTree('src/main/java/com/cylonid/nativealpha') {
+            include '**/__WebViewActivity_*.java'
+        }
+        delete fileTree('src/main') {
+            include '**/AndroidManifest.xml'
+        }
+        ant.move(file: 'src/main/AndroidManifest_original.xml', tofile:'src/main/AndroidManifest.xml')
     }
 }
 
-
+// Make sure the cleanUpAfterBuild task runs after every build task (both successful and failed)
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(":assemble") || graph.hasTask(":build")) {
+        // Clean up after build tasks
+        tasks.named("cleanUpAfterBuild").get().mustRunAfter(graph.getAllTasks())
+    }
+}
