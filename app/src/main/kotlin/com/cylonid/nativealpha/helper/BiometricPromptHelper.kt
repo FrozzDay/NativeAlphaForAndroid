@@ -12,12 +12,14 @@ import com.google.android.material.snackbar.Snackbar
 
 internal class BiometricPromptHelper(private val activity: FragmentActivity) {
     fun showPrompt(funSuccess: BiometricPromptCallback, funFail: BiometricPromptCallback, promptTitle: String) {
-        val supported = isBiometricsSupported(activity);
-        if(!supported) return;
+        val supported = isBiometricsSupported(activity)
+        if (!supported) return
+
         val executor = ContextCompat.getMainExecutor(activity)
         val biometricPrompt = BiometricPrompt(
             activity,
-            executor, object : BiometricPrompt.AuthenticationCallback() {
+            executor,
+            object : BiometricPrompt.AuthenticationCallback() {
                 override fun onAuthenticationError(
                     errorCode: Int,
                     errString: CharSequence
@@ -33,29 +35,39 @@ internal class BiometricPromptHelper(private val activity: FragmentActivity) {
                     funSuccess.execute()
                 }
             })
+
         val promptInfo = PromptInfo.Builder()
             .setTitle(promptTitle)
-            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .setAllowedAuthenticators(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
             .build()
         biometricPrompt.authenticate(promptInfo)
     }
 
     private fun isBiometricsSupported(activity: FragmentActivity): Boolean {
         val biometricManager = BiometricManager.from(activity)
-        var isSupported = false
 
-        when (biometricManager.canAuthenticate()) {
-            BiometricManager.BIOMETRIC_SUCCESS -> {
-                isSupported = true
-            }
+        return when (biometricManager.canAuthenticate()) {
+            BiometricManager.BIOMETRIC_SUCCESS -> true
             BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                Utility.showInfoSnackbar(activity as AppCompatActivity?, activity.getString(R.string.no_biometric_keys_enrolled), Snackbar.LENGTH_LONG);
+                Utility.showInfoSnackbar(
+                    activity as AppCompatActivity?,
+                    activity.getString(R.string.no_biometric_keys_enrolled),
+                    Snackbar.LENGTH_LONG
+                )
+                false
             }
             else -> {
-                Utility.showInfoSnackbar(activity as AppCompatActivity?, activity.getString(R.string.no_biometric_devices), Snackbar.LENGTH_LONG);
+                Utility.showInfoSnackbar(
+                    activity as AppCompatActivity?,
+                    activity.getString(R.string.no_biometric_devices),
+                    Snackbar.LENGTH_LONG
+                )
+                false
             }
         }
-        return isSupported
     }
 
     internal fun interface BiometricPromptCallback {
